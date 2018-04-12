@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>oil.png</file>
+        <file>fuel.png</file>
+    </qresource>
+</RCC>
