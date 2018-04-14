@@ -1,64 +1,76 @@
 import QtQuick 2.6
+import QtQuick.Controls 2.2
+import QtQuick.Controls.Material 2.2
 import QtQuick.Window 2.2
-import QtPositioning 5.8
-import QtLocation 5.9
+
 
 Window {
     visible: true
+    x: 0
+    y: 0
     width: 1600
     height: 900
-    title: qsTr("diyNavigation - prototype v1")
+    title: "diyNavigation"
 
-    Map {
-        Plugin {
-            id: mapPlugin
-            name: "osm"
-        }
+    Material.theme: Material.Light
+    Material.accent: Material.LightBlue
 
-        id: map
+    Geo {
+        id: geo
         anchors.fill: parent
-        plugin: mapPlugin
-        center: QtPositioning.coordinate(49.015, 8.403)
-        zoomLevel: 14
-        copyrightsVisible: false
+    }
 
-        RouteQuery {
-            id: routeQuery
+    TextField {
+        id: addressInput
+        anchors.left: parent.left
+        anchors.right: submitButton.left
+        anchors.top: parent.top
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
+        anchors.topMargin: 10
+
+        placeholderText: "Enter your destination"
+
+        selectByMouse: true
+    }
+
+    Button {
+        id: submitButton
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.rightMargin: 10
+        anchors.topMargin: 10
+
+        text: "Route"
+        highlighted: true
+
+        onClicked: {
+            var input = addressInput.text.trim();
+            if (input.length)
+                geo.update(input);
         }
+    }
 
-        RouteModel {
-            id: routeModel
-            plugin: mapPlugin
-            query: routeQuery
-            autoUpdate: false
-        }
+    Rectangle {
+        anchors.left: parent.left
+        anchors.top: addressInput.bottom
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 10
+        anchors.topMargin: 10
+        anchors.bottomMargin: 10
 
-        MapItemView {
-            model: routeModel
-            delegate: routeDelegate
-        }
+        ListView {
+            anchors.fill: parent
 
-        Component {
-            id: routeDelegate
+            model: geo.getRouteDetails()
 
-            MapRoute {
-                route: routeModel.get(0)
-                line.color: "blue"
-                line.width: 5
-                smooth: true
-                opacity: 0.6
+            interactive: true
+            delegate: Text {
+                style: Text.Raised
+                styleColor: "lightgray"
+                font.pointSize: 12
+                text: instruction
             }
         }
-    }
-
-    function setupRoute(){
-        routeQuery.addWaypoint(QtPositioning.coordinate(49.0107081,8.4335283));
-        routeQuery.addWaypoint(QtPositioning.coordinate(49.0017365,8.416579));
-        routeQuery.addWaypoint(QtPositioning.coordinate(49.1610111,8.4846428));
-        routeModel.update();
-    }
-
-    Component.onCompleted: {
-        setupRoute();
     }
 }

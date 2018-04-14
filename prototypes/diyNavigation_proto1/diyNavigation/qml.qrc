@@ -1,6 +1,10 @@
-<!DOCTYPE RCC>
-<RCC version="1.0">
+<RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>Geo.qml</file>
+        <file>qtquickcontrols2.conf</file>
+    </qresource>
+    <qresource prefix="/files">
+        <file>marker.png</file>
     </qresource>
 </RCC>
