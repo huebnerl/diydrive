@@ -5,8 +5,15 @@ import QtPositioning 5.8
 import QtLocation 5.9
 
 Item {
-    function update(input) {
-        geocodeModel.query = input;
+    property bool updateRoute: false
+    property string destinationString: ""
+
+    function update(start, dest) {
+        routeQuery.clearWaypoints();
+        updateRoute = false;
+        destinationString = dest;
+
+        geocodeModel.query = start;
         geocodeModel.update();
     }
 
@@ -30,11 +37,10 @@ Item {
         id: map
         anchors.fill: parent
         plugin: osm
-        center: QtPositioning.coordinate(49.0084811,8.4570316)
         zoomLevel: 14
         // copyrightsVisible: false
 
-        MapQuickItem {
+        /*MapQuickItem {
             id: marker
             visible: false
 
@@ -46,14 +52,14 @@ Item {
             }
             anchorPoint.x: image.width / 2
             anchorPoint.y: image.height
-        }
+        }*/
 
         MapItemView {
             model: routeModel
             delegate: Component {
                 MapRoute {
                     route: routeData
-                    line.color: Material.color(Material.LightBlue)
+                    line.color: "blue"
                     line.width: 4
                 }
             }
@@ -74,11 +80,14 @@ Item {
 
         onRoutesChanged: {
             if (count) {
+                routeInfo.text = "Travel distance: " + get(0).distance + "m, Travel time: about " + (get(0).travelTime / 60).toFixed(0) + " min";
+
                 routeDetails.clear();
                 for (var i = 0; i < get(0).segments.length; i++) {
                     var maneuver = get(0).segments[i].maneuver;
-                    routeDetails.append({"instruction": maneuver.instructionText});
-                    //console.log("In " + maneuver.distanceToNextInstruction + " " +  maneuver.instructionText);
+                    routeDetails.append({
+                                            "instruction": maneuver.instructionText
+                                        });
                 }
             }
         }
@@ -87,22 +96,23 @@ Item {
     GeocodeModel {
         id: geocodeModel
         plugin: osm
-        query: "Graben Neudorf Lessingstrasse 1"
         onLocationsChanged: {
             if (count) {
-                var destination = get(0).coordinate;
+                var location = get(0).coordinate;
+                routeQuery.addWaypoint(location);
 
-                routeQuery.clearWaypoints();
-                routeQuery.addWaypoint(QtPositioning.coordinate(49.0107081,8.4335283));
-                routeQuery.addWaypoint(destination);
-                routeModel.update();
-
-                map.center = destination;
-                marker.coordinate = destination;
-                marker.visible = true;
+                if (!updateRoute) {
+                    query = destinationString;
+                    updateRoute = true;
+                    update();
+                }
+                else {
+                    routeModel.update();
+                    // Instead of centering the map to our destination,
+                    // we should try and fit the routes bounds to the viewport.
+                    map.center = location;
+                }
             }
-            //for(var i = 0; i < count; i++)
-            //    console.log(get(i).address.text + " @ " + get(i).coordinate);
         }
     }
 }
